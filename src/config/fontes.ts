@@ -16,6 +16,14 @@ export const FONTES = {
     atualizadaEm: "2023-06-14",
     acessoEm: "2026-10-12",
   },
+  portaria158: {
+    titulo:
+      "Portaria GM/MS nº 158/2016, regulamento técnico de procedimentos hemoterápicos (consolidada na Portaria de Consolidação nº 5/2017, Anexo IV)",
+    orgao: "Ministério da Saúde",
+    url: "https://bvsms.saude.gov.br/bvs/saudelegis/gm/2016/prt0158_04_02_2016.html",
+    atualizadaEm: "2016-02-04",
+    acessoEm: "2026-11-12",
+  },
   hemoscRequisitos: {
     titulo: "Requisitos para doar",
     orgao: "HEMOSC",

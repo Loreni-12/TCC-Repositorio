@@ -12,8 +12,21 @@ function respostas(parcial: Partial<RespostasTriagem> = {}): RespostasTriagem {
     sexo: "feminino",
     pesoKg: 62,
     ultimaDoacao: null,
-    dormiu6Horas: true,
+    temDocumentoComFoto: true,
+    sentindoBem: true,
+    alimentadoEHidratado: true,
+    horasDeSono: 8,
+    bebeuAlcool12Horas: false,
     gripe: { situacao: "nao" },
+    gripeComFebre: false,
+    diarreia: { situacao: "nao" },
+    infeccaoTratada: { situacao: "nao" },
+    infeccoesDefinitivas: false,
+    sifilis: { situacao: "nao" },
+    doencaGrave: false,
+    epilepsiaRecente: false,
+    cancer: false,
+    dengue: { tipo: "nao" },
     dataTatuagem: null,
     dataCuraMalaria: null,
     gravida: false,
@@ -77,8 +90,8 @@ describe("verificarAptidao", () => {
     expect(r.reavaliarAPartirDe).toBeNull();
   });
 
-  it("dormiu menos de 6 horas: temporário", () => {
-    expect(verificarAptidao(respostas({ dormiu6Horas: false }), HOJE).motivos).toEqual(["SONO"]);
+  it("dormiu menos de 6 horas (5 h): temporário", () => {
+    expect(verificarAptidao(respostas({ horasDeSono: 5 }), HOJE).motivos).toEqual(["SONO"]);
   });
 
   describe("intervalo entre doações", () => {
@@ -115,18 +128,18 @@ describe("verificarAptidao", () => {
 
   describe("gripe ou resfriado", () => {
     it("com sintomas: temporário sem data", () => {
-      const r = verificarAptidao(respostas({ gripe: { situacao: "com_sintomas" } }), HOJE);
+      const r = verificarAptidao(respostas({ gripe: { situacao: "atual" } }), HOJE);
       expect(r.motivos).toEqual(["GRIPE_RESFRIADO"]);
       expect(r.reavaliarAPartirDe).toBeNull();
     });
 
     it("sintomas terminaram há menos de 7 dias: 7 dias após o fim", () => {
-      const r = verificarAptidao(respostas({ gripe: { situacao: "sintomas_terminaram", fim: d(2026, 10, 10) } }), HOJE);
+      const r = verificarAptidao(respostas({ gripe: { situacao: "terminou", fim: d(2026, 10, 10) } }), HOJE);
       expect(r.reavaliarAPartirDe).toEqual(d(2026, 10, 17));
     });
 
     it("sintomas terminaram há 7 dias: apto", () => {
-      const r = verificarAptidao(respostas({ gripe: { situacao: "sintomas_terminaram", fim: d(2026, 10, 5) } }), HOJE);
+      const r = verificarAptidao(respostas({ gripe: { situacao: "terminou", fim: d(2026, 10, 5) } }), HOJE);
       expect(r.resultado).toBe("apto");
     });
   });
@@ -154,7 +167,7 @@ describe("verificarAptidao", () => {
   });
 
   it("hepatite após os 11 anos: inapto, mesmo com outros motivos temporários", () => {
-    const r = verificarAptidao(respostas({ hepatiteApos11Anos: true, dormiu6Horas: false }), HOJE);
+    const r = verificarAptidao(respostas({ hepatiteApos11Anos: true, horasDeSono: 5 }), HOJE);
     expect(r.resultado).toBe("inapto");
     expect(r.motivos).toEqual(["SONO", "HEPATITE_APOS_11_ANOS"]);
     expect(r.reavaliarAPartirDe).toBeNull();
@@ -162,7 +175,7 @@ describe("verificarAptidao", () => {
 
   it("vários temporários com data: reavaliar a partir da maior", () => {
     const r = verificarAptidao(
-      respostas({ dataTatuagem: d(2026, 3, 15), gripe: { situacao: "sintomas_terminaram", fim: d(2026, 10, 10) } }),
+      respostas({ dataTatuagem: d(2026, 3, 15), gripe: { situacao: "terminou", fim: d(2026, 10, 10) } }),
       HOJE,
     );
     expect(r.motivos).toEqual(["GRIPE_RESFRIADO", "TATUAGEM"]);
@@ -172,5 +185,84 @@ describe("verificarAptidao", () => {
   it("um temporário sem data impede calcular a reavaliação", () => {
     const r = verificarAptidao(respostas({ dataTatuagem: d(2026, 3, 15), gravida: true }), HOJE);
     expect(r.reavaliarAPartirDe).toBeNull();
+  });
+
+  describe("critérios da Portaria GM/MS nº 158/2016", () => {
+    it("sem documento oficial com foto: temporário", () => {
+      expect(verificarAptidao(respostas({ temDocumentoComFoto: false }), HOJE).motivos).toEqual(["DOCUMENTO_COM_FOTO"]);
+    });
+
+    it("não se sente bem hoje: temporário", () => {
+      expect(verificarAptidao(respostas({ sentindoBem: false }), HOJE).motivos).toEqual(["BEM_ESTAR"]);
+    });
+
+    it("6 horas de sono é o mínimo aceito", () => {
+      expect(verificarAptidao(respostas({ horasDeSono: 6 }), HOJE).resultado).toBe("apto");
+    });
+
+    it("bebida alcoólica nas últimas 12 horas: temporário", () => {
+      expect(verificarAptidao(respostas({ bebeuAlcool12Horas: true }), HOJE).motivos).toEqual(["ALCOOL"]);
+    });
+
+    it("não alimentado: não impede, mas gera orientação de hidratação", () => {
+      const r = verificarAptidao(respostas({ alimentadoEHidratado: false }), HOJE);
+      expect(r.resultado).toBe("apto");
+      expect(r.orientacoes).toContain("HIDRATACAO");
+    });
+
+    it("gripe com febre de 38 °C ou mais: 2 semanas após os sintomas", () => {
+      const r = verificarAptidao(respostas({ gripe: { situacao: "terminou", fim: d(2026, 10, 5) }, gripeComFebre: true }), HOJE);
+      expect(r.motivos).toEqual(["GRIPE_COM_FEBRE"]);
+      expect(r.reavaliarAPartirDe).toEqual(d(2026, 10, 19));
+    });
+
+    it("diarreia: 1 semana após a cura", () => {
+      const r = verificarAptidao(respostas({ diarreia: { situacao: "terminou", fim: d(2026, 10, 10) } }), HOJE);
+      expect(r.motivos).toEqual(["DIARREIA"]);
+      expect(r.reavaliarAPartirDe).toEqual(d(2026, 10, 17));
+    });
+
+    it("infecção tratada com antibiótico: 2 semanas após o fim do tratamento; em tratamento, sem data", () => {
+      const terminou = verificarAptidao(respostas({ infeccaoTratada: { situacao: "terminou", fim: d(2026, 10, 1) } }), HOJE);
+      expect(terminou.reavaliarAPartirDe).toEqual(d(2026, 10, 15));
+      const atual = verificarAptidao(respostas({ infeccaoTratada: { situacao: "atual" } }), HOJE);
+      expect(atual.motivos).toEqual(["INFECCAO_BACTERIANA"]);
+      expect(atual.reavaliarAPartirDe).toBeNull();
+    });
+
+    it("HIV, HTLV, hepatites B/C ou Chagas: inapto definitivo", () => {
+      const r = verificarAptidao(respostas({ infeccoesDefinitivas: true }), HOJE);
+      expect(r.resultado).toBe("inapto");
+      expect(r.motivos).toEqual(["INFECCOES_DEFINITIVAS"]);
+    });
+
+    it("sífilis: 12 meses após o tratamento (temporário)", () => {
+      const r = verificarAptidao(respostas({ sifilis: { situacao: "terminou", fim: d(2026, 4, 1) } }), HOJE);
+      expect(r.resultado).toBe("inapto_temporario");
+      expect(r.reavaliarAPartirDe).toEqual(d(2027, 4, 1));
+    });
+
+    it("doença crônica grave e câncer: inapto definitivo", () => {
+      expect(verificarAptidao(respostas({ doencaGrave: true }), HOJE).motivos).toEqual(["DOENCA_GRAVE"]);
+      expect(verificarAptidao(respostas({ cancer: true }), HOJE).resultado).toBe("inapto");
+    });
+
+    it("epilepsia recente: temporário sem data", () => {
+      const r = verificarAptidao(respostas({ epilepsiaRecente: true }), HOJE);
+      expect(r.motivos).toEqual(["EPILEPSIA"]);
+      expect(r.reavaliarAPartirDe).toBeNull();
+    });
+
+    it("dengue: 4 semanas após a cura; dengue hemorrágica: 6 meses", () => {
+      const comum = verificarAptidao(respostas({ dengue: { tipo: "dengue", cura: d(2026, 10, 1) } }), HOJE);
+      expect(comum.reavaliarAPartirDe).toEqual(d(2026, 10, 29));
+      const grave = verificarAptidao(respostas({ dengue: { tipo: "grave", cura: d(2026, 9, 1) } }), HOJE);
+      expect(grave.motivos).toEqual(["DENGUE_GRAVE"]);
+      expect(grave.reavaliarAPartirDe).toEqual(d(2027, 3, 1));
+    });
+
+    it("dengue curada há mais de 4 semanas: apto", () => {
+      expect(verificarAptidao(respostas({ dengue: { tipo: "dengue", cura: d(2026, 9, 1) } }), HOJE).resultado).toBe("apto");
+    });
   });
 });

@@ -47,8 +47,9 @@ export function SecaoAbertura() {
 
         <div className="relative mx-auto w-full max-w-sm lg:max-w-md">
           <div aria-hidden className="absolute -inset-6 rounded-full border-2 border-dashed border-rosa" />
-          <div className="relative grid aspect-square place-items-center rounded-full bg-branco p-12">
-            <img src={logo} alt="Logo do Doe + Vida: bolsa de sangue ligada a um coração" className="w-full" />
+          {/* Logo a 72% do diâmetro: a diagonal da imagem (~1,3 × largura) fica dentro do círculo. */}
+          <div className="relative grid aspect-square place-items-center rounded-full bg-branco">
+            <img src={logo} alt="Logo do Doe + Vida: bolsa de sangue ligada a um coração" className="w-[72%]" />
           </div>
           <a
             href={LINKS_OFICIAIS.hemoscOndeDoar.url}

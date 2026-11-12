@@ -1,4 +1,4 @@
-import { CalendarDays, Droplet, HeartPulse, Stethoscope, UserRound } from "lucide-react";
+import { CalendarDays, HeartPulse, Stethoscope, UserRound } from "lucide-react";
 import type { FormEvent, ReactNode } from "react";
 import { formatarDataIso } from "../../features/triagem/datas";
 import type { ErrosFormulario, FormularioTriagem } from "../../features/triagem/validarFormulario";
@@ -12,10 +12,12 @@ const SIM_NAO: readonly Opcao<"sim" | "nao">[] = [
   { valor: "nao", rotulo: "Não" },
 ];
 
+type Campo = keyof FormularioTriagem;
+
 interface Props {
   valores: FormularioTriagem;
   erros: ErrosFormulario;
-  aoMudar: <K extends keyof FormularioTriagem>(campo: K, valor: FormularioTriagem[K]) => void;
+  aoMudar: <K extends Campo>(campo: K, valor: FormularioTriagem[K]) => void;
   aoEnviar: () => void;
 }
 
@@ -41,17 +43,54 @@ export function FormularioTriagemCampos({ valores: v, erros, aoMudar, aoEnviar }
     aoEnviar();
   }
 
+  /** Pergunta Sim/Não. */
+  const simNao = (campo: Campo, pergunta: string, dica?: string) => (
+    <CampoOpcoes
+      pergunta={pergunta}
+      nome={campo}
+      dica={dica}
+      opcoes={SIM_NAO}
+      valor={v[campo] as "sim" | "nao" | ""}
+      aoMudar={(x) => aoMudar(campo, x)}
+      erro={erros[campo]}
+    />
+  );
+
+  /** Campo de data (passado). */
+  const data = (campo: Campo, rotulo: string, dica?: string) => (
+    <CampoTexto rotulo={rotulo} dica={dica} type="date" max={hoje} value={v[campo]} aoMudar={(x) => aoMudar(campo, x)} erro={erros[campo]} />
+  );
+
+  /** Situação recente: não / atual / já terminou (+ data). */
+  const situacao = (
+    campo: "gripe" | "diarreia" | "infeccaoTratada" | "sifilis",
+    campoData: Campo,
+    pergunta: string,
+    rotulos: { atual: string; terminou: string; nao?: string; data: string },
+    dica?: string,
+  ) => (
+    <>
+      <CampoOpcoes
+        pergunta={pergunta}
+        nome={campo}
+        dica={dica}
+        opcoes={[
+          { valor: "nao", rotulo: rotulos.nao ?? "Não" },
+          { valor: "atual", rotulo: rotulos.atual },
+          { valor: "terminou", rotulo: rotulos.terminou },
+        ]}
+        valor={v[campo]}
+        aoMudar={(x) => aoMudar(campo, x)}
+        erro={erros[campo]}
+      />
+      {v[campo] === "terminou" && data(campoData, rotulos.data)}
+    </>
+  );
+
   return (
     <form onSubmit={enviar} noValidate className="space-y-6">
-      <Secao titulo="Sobre você" icone={<UserRound aria-hidden className={iconeClasse} />}>
-        <CampoTexto
-          rotulo="Data de nascimento"
-          type="date"
-          max={hoje}
-          value={v.dataNascimento}
-          aoMudar={(x) => aoMudar("dataNascimento", x)}
-          erro={erros.dataNascimento}
-        />
+      <Secao titulo="1. Identificação, idade e peso" icone={<UserRound aria-hidden className={iconeClasse} />}>
+        {data("dataNascimento", "Qual é a sua data de nascimento?", "É preciso ter entre 16 e 69 anos. A primeira doação deve ser feita até os 60.")}
         <CampoOpcoes
           pergunta="Sexo"
           nome="sexo"
@@ -65,7 +104,8 @@ export function FormularioTriagemCampos({ valores: v, erros, aoMudar, aoEnviar }
           erro={erros.sexo}
         />
         <CampoTexto
-          rotulo="Peso (kg)"
+          rotulo="Qual é o seu peso atual (kg)?"
+          dica="O mínimo é 50 kg."
           inputMode="decimal"
           autoComplete="off"
           placeholder="Ex.: 62,5"
@@ -73,21 +113,10 @@ export function FormularioTriagemCampos({ valores: v, erros, aoMudar, aoEnviar }
           aoMudar={(x) => aoMudar("peso", x)}
           erro={erros.peso}
         />
-      </Secao>
-
-      <Secao titulo="Doações anteriores" icone={<Droplet aria-hidden className={iconeClasse} />}>
-        <CampoOpcoes pergunta="Você já doou sangue?" nome="jaDoou" opcoes={SIM_NAO} valor={v.jaDoou} aoMudar={(x) => aoMudar("jaDoou", x)} erro={erros.jaDoou} />
+        {simNao("jaDoou", "Você já doou sangue anteriormente?")}
         {v.jaDoou === "sim" && (
           <>
-            <CampoTexto
-              rotulo="Data da última doação"
-              dica="Se não lembrar o dia exato, use uma data aproximada."
-              type="date"
-              max={hoje}
-              value={v.dataUltimaDoacao}
-              aoMudar={(x) => aoMudar("dataUltimaDoacao", x)}
-              erro={erros.dataUltimaDoacao}
-            />
+            {data("dataUltimaDoacao", "Qual foi a data da última doação?", "Se não lembrar o dia exato, use uma data aproximada.")}
             <CampoTexto
               rotulo="Quantas vezes você doou nos últimos 12 meses?"
               type="number"
@@ -100,112 +129,103 @@ export function FormularioTriagemCampos({ valores: v, erros, aoMudar, aoEnviar }
             />
           </>
         )}
+        {simNao(
+          "documentoComFoto",
+          "Você tem um documento oficial de identificação com foto para apresentar?",
+          "Por exemplo: RG, CNH, carteira de trabalho, passaporte ou carteira profissional.",
+        )}
       </Secao>
 
-      <Secao titulo="Como você está" icone={<HeartPulse aria-hidden className={iconeClasse} />}>
-        <CampoOpcoes
-          pergunta="Você dormiu pelo menos 6 horas nas últimas 24 horas?"
-          nome="dormiu6Horas"
-          opcoes={SIM_NAO}
-          valor={v.dormiu6Horas}
-          aoMudar={(x) => aoMudar("dormiu6Horas", x)}
-          erro={erros.dormiu6Horas}
+      <Secao titulo="2. Condições físicas no dia da doação" icone={<HeartPulse aria-hidden className={iconeClasse} />}>
+        {simNao("sentindoBem", "Você se sente bem de saúde hoje?")}
+        {simNao("alimentado", "Você está bem alimentado(a) e hidratado(a)?", "Evite jejum e alimentos gordurosos nas 3 horas antes da doação.")}
+        <CampoTexto
+          rotulo="Quantas horas você dormiu nas últimas 24 horas?"
+          dica="O mínimo é 6 horas."
+          type="number"
+          inputMode="decimal"
+          min={0}
+          max={24}
+          value={v.horasSono}
+          aoMudar={(x) => aoMudar("horasSono", x)}
+          erro={erros.horasSono}
         />
+        {simNao("alcool12Horas", "Você ingeriu bebida alcoólica nas últimas 12 horas?")}
+      </Secao>
+
+      <Secao titulo="3. Histórico de doenças e sintomas recentes" icone={<Stethoscope aria-hidden className={iconeClasse} />}>
+        {situacao("gripe", "dataFimGripe", "Você teve gripe ou resfriado nos últimos 15 dias?", {
+          atual: "Estou com sintomas",
+          terminou: "Tive, mas os sintomas já passaram",
+          data: "Em que dia os sintomas terminaram?",
+        })}
+        {(v.gripe === "atual" || v.gripe === "terminou") && simNao("gripeFebre", "Você teve febre de 38 °C ou mais junto com a gripe ou o resfriado?")}
+        {situacao("diarreia", "dataFimDiarreia", "Você teve diarreia nos últimos 15 dias?", {
+          atual: "Estou com diarreia",
+          terminou: "Tive, mas já passou",
+          data: "Em que dia a diarreia passou?",
+        })}
+        {situacao(
+          "infeccaoTratada",
+          "dataFimInfeccao",
+          "Nos últimos 15 dias, você tratou com antibiótico alguma infecção, como dor de garganta (amigdalite), sinusite, otite ou infecção urinária?",
+          { atual: "Estou em tratamento", terminou: "Terminei o tratamento", data: "Em que dia o tratamento terminou?" },
+        )}
+        {simNao("hepatiteApos11Anos", "Você tem ou já teve hepatite após os 11 anos de idade?")}
+        {simNao("infeccoesDefinitivas", "Você já teve diagnóstico de HIV/AIDS, HTLV, hepatite B, hepatite C ou doença de Chagas?")}
+        {situacao("sifilis", "dataFimSifilis", "Você teve diagnóstico de sífilis?", {
+          nao: "Não, ou terminei o tratamento há mais de 12 meses",
+          atual: "Estou em tratamento",
+          terminou: "Terminei o tratamento nos últimos 12 meses",
+          data: "Em que dia o tratamento terminou?",
+        })}
+        {simNao("malaria12Meses", "Você se curou de malária nos últimos 12 meses?")}
+        {v.malaria12Meses === "sim" && data("dataCuraMalaria", "Data da cura")}
+        {simNao(
+          "doencaGrave",
+          "Você tem alguma destas doenças: doença cardíaca grave, doença pulmonar grave (como enfisema), doença renal crônica ou diabetes com uso de insulina?",
+        )}
+        {simNao(
+          "epilepsia",
+          "Você tem epilepsia em tratamento, ou suspendeu o tratamento ou teve crise convulsiva nos últimos 3 anos?",
+        )}
         <CampoOpcoes
-          pergunta="Você teve gripe ou resfriado recentemente?"
-          nome="gripe"
+          pergunta="Você já teve diagnóstico de algum tipo de câncer (inclusive leucemia)?"
+          nome="cancer"
           opcoes={[
             { valor: "nao", rotulo: "Não" },
-            { valor: "com_sintomas", rotulo: "Estou com sintomas" },
-            { valor: "sintomas_terminaram", rotulo: "Tive, mas os sintomas já passaram" },
+            { valor: "sim", rotulo: "Sim" },
+            { valor: "excecao", rotulo: "Só carcinoma basocelular de pele ou carcinoma in situ de colo do útero" },
           ]}
-          valor={v.gripe}
-          aoMudar={(x) => aoMudar("gripe", x)}
-          erro={erros.gripe}
+          valor={v.cancer}
+          aoMudar={(x) => aoMudar("cancer", x)}
+          erro={erros.cancer}
         />
-        {v.gripe === "sintomas_terminaram" && (
-          <CampoTexto
-            rotulo="Em que dia os sintomas terminaram?"
-            type="date"
-            max={hoje}
-            value={v.dataFimSintomas}
-            aoMudar={(x) => aoMudar("dataFimSintomas", x)}
-            erro={erros.dataFimSintomas}
-          />
-        )}
+        <CampoOpcoes
+          pergunta="Você teve dengue nos últimos 6 meses?"
+          nome="dengue"
+          opcoes={[
+            { valor: "nao", rotulo: "Não" },
+            { valor: "dengue", rotulo: "Sim, dengue" },
+            { valor: "grave", rotulo: "Sim, dengue hemorrágica (grave)" },
+          ]}
+          valor={v.dengue}
+          aoMudar={(x) => aoMudar("dengue", x)}
+          erro={erros.dengue}
+        />
+        {(v.dengue === "dengue" || v.dengue === "grave") && data("dataCuraDengue", "Em que dia você se curou?")}
       </Secao>
 
-      <Secao titulo="Últimos 12 meses" icone={<CalendarDays aria-hidden className={iconeClasse} />}>
-        <CampoOpcoes
-          pergunta="Você fez tatuagem nos últimos 12 meses?"
-          nome="tatuagem12Meses"
-          opcoes={SIM_NAO}
-          valor={v.tatuagem12Meses}
-          aoMudar={(x) => aoMudar("tatuagem12Meses", x)}
-          erro={erros.tatuagem12Meses}
-        />
-        {v.tatuagem12Meses === "sim" && (
-          <CampoTexto
-            rotulo="Data da tatuagem mais recente"
-            type="date"
-            max={hoje}
-            value={v.dataTatuagem}
-            aoMudar={(x) => aoMudar("dataTatuagem", x)}
-            erro={erros.dataTatuagem}
-          />
-        )}
-        <CampoOpcoes
-          pergunta="Você se curou de malária nos últimos 12 meses?"
-          nome="malaria12Meses"
-          opcoes={SIM_NAO}
-          valor={v.malaria12Meses}
-          aoMudar={(x) => aoMudar("malaria12Meses", x)}
-          erro={erros.malaria12Meses}
-        />
-        {v.malaria12Meses === "sim" && (
-          <CampoTexto
-            rotulo="Data da cura"
-            type="date"
-            max={hoje}
-            value={v.dataCuraMalaria}
-            aoMudar={(x) => aoMudar("dataCuraMalaria", x)}
-            erro={erros.dataCuraMalaria}
-          />
-        )}
+      <Secao titulo="4. Últimos 12 meses" icone={<CalendarDays aria-hidden className={iconeClasse} />}>
+        {simNao("tatuagem12Meses", "Você fez tatuagem nos últimos 12 meses?")}
+        {v.tatuagem12Meses === "sim" && data("dataTatuagem", "Data da tatuagem mais recente")}
         {v.sexo === "feminino" && (
           <>
-            <CampoOpcoes pergunta="Você está grávida?" nome="gravida" opcoes={SIM_NAO} valor={v.gravida} aoMudar={(x) => aoMudar("gravida", x)} erro={erros.gravida} />
-            <CampoOpcoes
-              pergunta="Você está amamentando?"
-              nome="amamentando"
-              opcoes={SIM_NAO}
-              valor={v.amamentando}
-              aoMudar={(x) => aoMudar("amamentando", x)}
-              erro={erros.amamentando}
-            />
-            {v.amamentando === "sim" && (
-              <CampoTexto
-                rotulo="Data de nascimento do bebê"
-                type="date"
-                max={hoje}
-                value={v.dataNascimentoBebe}
-                aoMudar={(x) => aoMudar("dataNascimentoBebe", x)}
-                erro={erros.dataNascimentoBebe}
-              />
-            )}
+            {simNao("gravida", "Você está grávida?")}
+            {simNao("amamentando", "Você está amamentando?")}
+            {v.amamentando === "sim" && data("dataNascimentoBebe", "Data de nascimento do bebê")}
           </>
         )}
-      </Secao>
-
-      <Secao titulo="Histórico de saúde" icone={<Stethoscope aria-hidden className={iconeClasse} />}>
-        <CampoOpcoes
-          pergunta="Você teve hepatite depois dos 11 anos de idade?"
-          nome="hepatiteApos11Anos"
-          opcoes={SIM_NAO}
-          valor={v.hepatiteApos11Anos}
-          aoMudar={(x) => aoMudar("hepatiteApos11Anos", x)}
-          erro={erros.hepatiteApos11Anos}
-        />
       </Secao>
 
       {Object.keys(erros).length > 0 && (

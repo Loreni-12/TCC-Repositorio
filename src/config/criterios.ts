@@ -8,10 +8,14 @@ import type { ChaveFonte } from "./fontes";
  * - `revisadoPelaEquipe: false` = transcrito, ainda não conferido pela equipe (A VERIFICAR).
  * - Ao mudar qualquer critério ou parâmetro, incremente VERSAO_CRITERIOS.
  *
- * Fora desta versão (não constam nas fontes lidas em 2026-10-12): bebida alcoólica,
- * HIV/HTLV/Chagas, pós-parto sem amamentação, vacinas, cirurgias.
+ * Fontes: FAQ do Ministério da Saúde (versão 2026-10-12.1) e Portaria GM/MS nº 158/2016,
+ * consolidada na PRC nº 5/2017, Anexo IV (critérios incluídos na versão 2026-11-12.1).
+ * Quando as duas divergem, prevalece o prazo mais longo (mais conservador).
+ *
+ * Fora desta versão (sem fonte oficial encontrada): zika, chikungunya, pós-parto sem
+ * amamentação, vacinas, cirurgias. A VERIFICAR se a Portaria teve alterações posteriores.
  */
-export const VERSAO_CRITERIOS = "2026-10-12.1";
+export const VERSAO_CRITERIOS = "2026-11-12.1";
 
 export const PARAMETROS = {
   idadeMinima: 16,
@@ -25,6 +29,12 @@ export const PARAMETROS = {
   mesesEntreDoacoes: { masculino: 2, feminino: 3 },
   doacoesPorAno: { masculino: 4, feminino: 3 },
   diasAposGripe: 7,
+  diasAposGripeComFebre: 14,
+  diasAposDiarreia: 7,
+  diasAposTratamentoInfeccao: 14,
+  diasAposDengue: 28,
+  mesesAposDengueGrave: 6,
+  mesesAposTratamentoSifilis: 12,
   mesesAposTatuagem: 12,
   mesesAposCuraMalaria: 12,
   mesesAmamentacao: 12,
@@ -47,7 +57,21 @@ export type CodigoCriterio =
   | "GRAVIDEZ"
   | "AMAMENTACAO"
   | "HEPATITE_APOS_11_ANOS"
-  | "ALIMENTACAO";
+  | "ALIMENTACAO"
+  | "DOCUMENTO_COM_FOTO"
+  | "BEM_ESTAR"
+  | "HIDRATACAO"
+  | "ALCOOL"
+  | "GRIPE_COM_FEBRE"
+  | "DIARREIA"
+  | "INFECCAO_BACTERIANA"
+  | "INFECCOES_DEFINITIVAS"
+  | "SIFILIS"
+  | "DOENCA_GRAVE"
+  | "EPILEPSIA"
+  | "CANCER"
+  | "DENGUE"
+  | "DENGUE_GRAVE";
 
 export interface Criterio {
   tipo: TipoCriterio;
@@ -183,6 +207,127 @@ export const CRITERIOS: Record<CodigoCriterio, Criterio> = {
     trechoFonte:
       "O doador não deve estar em jejum, pelo contrário, deve estar alimentado e descansado, evitando alimentação gordurosa nas 3 horas que antecedem a doação.",
     fonte: "faqMinisterioSaude",
+    revisadoPelaEquipe: false,
+  },
+
+  // ---- Portaria GM/MS nº 158/2016 (PRC nº 5/2017, Anexo IV) ----
+  DOCUMENTO_COM_FOTO: {
+    tipo: "temporario",
+    titulo: "Documento oficial com foto",
+    orientacao: "Leve um documento oficial com foto (RG, CNH, carteira de trabalho, passaporte ou carteira profissional). Sem ele não é possível doar.",
+    trechoFonte:
+      "Para doação de sangue, é obrigatório apresentar documento de identificação com fotografia, emitido por órgão oficial (Art. 66, § 1º).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  BEM_ESTAR: {
+    tipo: "temporario",
+    titulo: "Bem-estar no dia da doação",
+    orientacao: "É preciso estar se sentindo bem para doar. Refaça a pré-triagem quando estiver bem.",
+    trechoFonte: "aspectos gerais do candidato, que deve ter aspecto saudável à ectoscopia e declarar bem-estar geral (Art. 52).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  HIDRATACAO: {
+    tipo: "orientacao",
+    titulo: "Alimentação e hidratação",
+    orientacao: "Coma algo leve e beba água antes de ir. Quem chega em jejum prolongado recebe um lanche no hemocentro antes da doação.",
+    trechoFonte:
+      "Será oferecida ao doador a possibilidade de hidratação oral antes da doação e os doadores que se apresentarem em jejum prolongado receberão um lanche antes da doação (Art. 47).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  ALCOOL: {
+    tipo: "temporario",
+    titulo: "Bebida alcoólica",
+    orientacao: "Aguarde 12 horas depois de beber para doar.",
+    trechoFonte: "A ingestão de bebidas alcoólicas contraindica a doação por 12 (doze) horas após o consumo (Art. 48, parágrafo único).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  GRIPE_COM_FEBRE: {
+    tipo: "temporario",
+    titulo: "Gripe ou resfriado com febre",
+    orientacao: "Com febre de 38 °C ou mais, aguarde 2 semanas depois que os sintomas desaparecerem.",
+    trechoFonte:
+      "O candidato com sintoma de gripe ou resfriado associado à temperatura corporal maior ou igual 38oC (trinta e oito graus Celsius) é inapto por 2 (duas) semanas após o desaparecimento dos sintomas (Art. 54, § 1º).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  DIARREIA: {
+    tipo: "temporario",
+    titulo: "Diarreia",
+    orientacao: "Aguarde 1 semana depois da cura.",
+    trechoFonte: "Diarreia: 1 semana após a cura (Anexo, causas de inaptidão temporária).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  INFECCAO_BACTERIANA: {
+    tipo: "temporario",
+    titulo: "Infecção tratada com antibiótico",
+    orientacao: "Em infecções comuns, como amigdalite (dor de garganta), sinusite, otite ou infecção urinária, aguarde 2 semanas depois do fim do tratamento.",
+    trechoFonte:
+      "Infecções bacterianas comuns não complicadas (por exemplo: sinusite, amigdalite, otite, infecção urinária baixa): 2 semanas após o fim do tratamento (Anexo, causas de inaptidão temporária).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  INFECCOES_DEFINITIVAS: {
+    tipo: "definitivo",
+    titulo: "HIV, HTLV, hepatites B ou C ou doença de Chagas",
+    orientacao: "Essas infecções impedem a doação de forma definitiva. Você pode ajudar incentivando outras pessoas a doar.",
+    trechoFonte:
+      "[definitivamente inapto quem] tenha antecedente clínico, laboratorial ou história atual de infecção pelos agentes HBV, HCV, HIV ou HTLV (Art. 54, II). [...] com diagnóstico clínico ou laboratorial de Doença de Chagas deve ser excluído de forma permanente (Art. 58).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  SIFILIS: {
+    tipo: "temporario",
+    titulo: "Sífilis",
+    orientacao: "Aguarde 12 meses depois do fim do tratamento.",
+    trechoFonte: "Sífilis: 12 meses o tratamento (Anexo, causas de inaptidão temporária; texto como publicado).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  DOENCA_GRAVE: {
+    tipo: "definitivo",
+    titulo: "Doença crônica grave",
+    orientacao: "Doença cardiovascular grave, doença pulmonar grave, doença renal crônica ou diabetes com uso de insulina impedem a doação de forma definitiva.",
+    trechoFonte:
+      "Doença cardiovascular grave [...]. Doença pulmonar grave [...]. Doença renal crônica. Diabetes tipo I, diabetes tipo II, insulino-dependente (Anexo, principais causas de inaptidão definitiva).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  EPILEPSIA: {
+    tipo: "temporario",
+    titulo: "Epilepsia",
+    orientacao: "É possível doar 3 anos depois de suspender o tratamento, se não houver nenhuma crise convulsiva nesse período.",
+    trechoFonte: "Epilepsia: 3 anos após suspensão do tratamento e sem relato de crise convulsiva (Anexo, causas de inaptidão temporária).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  CANCER: {
+    tipo: "definitivo",
+    titulo: "Câncer",
+    orientacao: "Ter tido câncer (inclusive leucemia) impede a doação de forma definitiva, exceto carcinoma basocelular de pele e carcinoma in situ de colo do útero.",
+    trechoFonte:
+      "Câncer (inclusive leucemia). Antecedentes de carcinoma in situ de cérvix uterina e de carcinoma basocelular de pele não impedem a doação de sangue (Anexo, principais causas de inaptidão definitiva).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  DENGUE: {
+    tipo: "temporario",
+    titulo: "Dengue",
+    orientacao: "Aguarde 4 semanas depois da cura.",
+    trechoFonte: "Dengue: 4 semanas após a cura (Anexo, causas de inaptidão temporária).",
+    fonte: "portaria158",
+    revisadoPelaEquipe: false,
+  },
+  DENGUE_GRAVE: {
+    tipo: "temporario",
+    titulo: "Dengue hemorrágica",
+    orientacao: "Aguarde 6 meses depois da cura.",
+    trechoFonte: "Dengue hemorrágico: 6 meses após a cura (Anexo, causas de inaptidão temporária).",
+    fonte: "portaria158",
     revisadoPelaEquipe: false,
   },
 };

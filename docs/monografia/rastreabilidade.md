@@ -41,6 +41,10 @@ Multiplicidade: o diagrama mostra Usuario **1—1** QuestionarioTriagem, mas o t
 | Q2 verificarTriagem | `src/features/triagem/verificarAptidao.ts`: limites vindos de `config/criterios.ts` (`PARAMETROS`), sem manipular o DOM. Diferença em relação ao Quadro 2: a idade mínima é 16 (o quadro usa `idade < 16`, o que bate) e o resultado tem 3 níveis com data para refazer. | ✅ |
 | Q3 agendar | `src/services/agendamentos.ts`: `addDoc(collection(db, "users", uid, "agendamentos"), {...})` com status `planejado` (C1) | ⏳ |
 
+### Critérios da versão 2026-11-12.1 (inclui a Portaria GM/MS nº 158/2016)
+
+Foram acrescentados 14 critérios da Portaria GM/MS nº 158/2016 (consolidada na PRC nº 5/2017, Anexo IV), cada um com o artigo ou a tabela de origem em `trechoFonte`.
+
 ### Critérios da versão 2026-10-12.1
 
 Fonte: FAQ do Ministério da Saúde (atualizada em 14/06/2023, consultada em 12/10/2026). Cada critério guarda o trecho literal da fonte em `src/config/criterios.ts`. Todos estão com `revisadoPelaEquipe: false` até a equipe conferir.

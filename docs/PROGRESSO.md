@@ -12,11 +12,23 @@
 - [ ] Equipe conferir manualmente a página de requisitos do HEMOSC e dizer se algum critério deve entrar.
 - [ ] Testar num celular de verdade (o teste automatizado já emula 390 px e mostrou que nada estoura a largura).
 - [x] Regras do Firestore publicadas e site no ar em https://doe-mais-vida.web.app (2026-10-12).
-- [ ] Fotos e minibiografias da equipe (opcional; hoje aparecem as iniciais).
 - [ ] Decidir se `/perfil` continua como página ou vira parte do pop-up.
-- [ ] **GitHub:** enviar para o repositório que começa com "tcc" (aguardando `gh auth login`).
+- [x] GitHub: código em https://github.com/Loreni-12/TCC-Reposit-rio (ramo `main`).
+- [ ] **Ramo local `alteracoes-novembro`**: logo menor no círculo + 14 perguntas novas na pré-triagem. **Não enviado ao GitHub nem publicado**, aguardando aprovação.
+- [ ] Fotos da equipe: aguardando os arquivos (Ana, Eduardo, Milena e Thaís).
+- [ ] Zika e chikungunya: sem fonte oficial encontrada; equipe indicar a fonte se quiser incluir.
 - [ ] Máscaras de entrada (telefone) e toast de feedback: citados na lista do professor e ainda não implementados.
 - [ ] Projeto antigo `doemaisvidadb` não é mais usado — decidir se mantém ou exclui (pelo console; nada foi alterado nele).
+
+## 2026-11-12 — Logo e novas perguntas da pré-triagem (ramo local)
+
+**Feito** (no ramo `alteracoes-novembro`, sem push e sem deploy)
+- Logo da abertura reduzido para 72% do círculo; medido: o canto mais distante fica a 211 px do centro, com raio de 224 px.
+- Pré-triagem reorganizada nas 4 seções pedidas pela equipe, com 14 critérios novos da Portaria GM/MS nº 158/2016 (PRC nº 5/2017, Anexo IV): documento com foto, bem-estar, hidratação (orientação), álcool 12 h, gripe com febre (2 semanas), diarreia (1 semana), infecção tratada (2 semanas), HIV/HTLV/hepatites B e C/Chagas (definitivo), sífilis (12 meses), doença crônica grave (definitivo), epilepsia, câncer (definitivo, com exceções), dengue (4 semanas) e dengue hemorrágica (6 meses).
+- Sono passou a ser perguntado em horas (mínimo 6, conforme a FAQ).
+- Divergências entre a lista da equipe e a lei: a lei prevaleceu (dengue 4 semanas, sífilis temporária, epilepsia temporária). Zika e chikungunya ficaram de fora por falta de fonte.
+
+**Verificação:** lint ✔ · typecheck ✔ · build ✔ · test 65/65 ✔ · conferência visual da página inicial e da pré-triagem no build local.
 
 ## 2026-10-12 — Site no ar, rodapé e PDF
 

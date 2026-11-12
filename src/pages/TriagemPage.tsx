@@ -20,6 +20,7 @@ import { verificarAptidao } from "../features/triagem/verificarAptidao";
 import type { ResultadoTriagem } from "../types/triagem";
 
 const fonte = FONTES.faqMinisterioSaude;
+const portaria = FONTES.portaria158;
 const criteriosEmRevisao = Object.values(CRITERIOS).some((c) => !c.revisadoPelaEquipe);
 
 const COMO_FUNCIONA = [
@@ -88,7 +89,9 @@ export function TriagemPage() {
 
           <p className="text-xs text-cinza">
             Critérios baseados em: <LinkExterno href={fonte.url}>{`${fonte.orgao}, ${fonte.titulo}`}</LinkExterno>{" "}
-            (atualizada em {dataBr(fonte.atualizadaEm)}, consultada em {dataBr(fonte.acessoEm)}).
+            (atualizada em {dataBr(fonte.atualizadaEm)}, consultada em {dataBr(fonte.acessoEm)}) e{" "}
+            <LinkExterno href={portaria.url}>Portaria GM/MS nº 158/2016</LinkExterno> (consolidada na Portaria de Consolidação nº
+            5/2017, consultada em {dataBr(portaria.acessoEm)}).
             {criteriosEmRevisao && " Critérios em revisão pela equipe."}
           </p>
         </aside>

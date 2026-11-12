@@ -1,5 +1,5 @@
 import { CRITERIOS, PARAMETROS, VERSAO_CRITERIOS, type CodigoCriterio } from "../../config/criterios";
-import type { RespostasTriagem, ResultadoAptidao, ResultadoTriagem } from "../../types/triagem";
+import type { Episodio, RespostasTriagem, ResultadoAptidao, ResultadoTriagem } from "../../types/triagem";
 import { idadeEmAnos, inicioDoDia, somarDias, somarMeses } from "./datas";
 
 interface Impedimento {
@@ -22,6 +22,11 @@ export function verificarAptidao(respostas: RespostasTriagem, agora: Date = new 
     if (liberaEm === null || liberaEm > hoje) impedimentos.push({ codigo, liberaEm });
   };
   const definitivo = (codigo: CodigoCriterio) => impedimentos.push({ codigo, liberaEm: null });
+  /** Sintoma/tratamento atual: temporário sem data. Já terminou: temporário até a data calculada. */
+  const episodio = (e: Episodio, codigo: CodigoCriterio, liberaEm: (fim: Date) => Date) => {
+    if (e.situacao === "atual") temporario(codigo);
+    if (e.situacao === "terminou") temporario(codigo, liberaEm(e.fim));
+  };
 
   // Idade
   const idade = idadeEmAnos(respostas.dataNascimento, hoje);
@@ -34,9 +39,15 @@ export function verificarAptidao(respostas: RespostasTriagem, agora: Date = new 
   }
   if (idade >= PARAMETROS.idadeMinima && idade < PARAMETROS.idadeMaioridade) orientacoes.push("MENOR_DE_18");
 
-  // Peso e descanso
+  // Peso e documento
   if (respostas.pesoKg < PARAMETROS.pesoMinimoKg) temporario("PESO_MINIMO");
-  if (!respostas.dormiu6Horas) temporario("SONO");
+  if (!respostas.temDocumentoComFoto) temporario("DOCUMENTO_COM_FOTO");
+
+  // Condições no dia da doação
+  if (!respostas.sentindoBem) temporario("BEM_ESTAR");
+  if (respostas.horasDeSono < PARAMETROS.horasSonoMinimas) temporario("SONO");
+  if (respostas.bebeuAlcool12Horas) temporario("ALCOOL");
+  if (!respostas.alimentadoEHidratado) orientacoes.push("HIDRATACAO");
 
   // Doações anteriores
   if (respostas.ultimaDoacao) {
@@ -45,10 +56,17 @@ export function verificarAptidao(respostas: RespostasTriagem, agora: Date = new 
     if (doacoesUltimos12Meses >= PARAMETROS.doacoesPorAno[respostas.sexo]) temporario("LIMITE_ANUAL_DOACOES");
   }
 
-  // Situações temporárias
-  if (respostas.gripe.situacao === "com_sintomas") temporario("GRIPE_RESFRIADO");
-  if (respostas.gripe.situacao === "sintomas_terminaram") {
-    temporario("GRIPE_RESFRIADO", somarDias(respostas.gripe.fim, PARAMETROS.diasAposGripe));
+  // Sintomas e doenças recentes. Gripe: FAQ (7 dias) ou, com febre ≥ 38 °C, Portaria (2 semanas).
+  const codigoGripe = respostas.gripeComFebre ? "GRIPE_COM_FEBRE" : "GRIPE_RESFRIADO";
+  const diasGripe = respostas.gripeComFebre ? PARAMETROS.diasAposGripeComFebre : PARAMETROS.diasAposGripe;
+  episodio(respostas.gripe, codigoGripe, (fim) => somarDias(fim, diasGripe));
+  episodio(respostas.diarreia, "DIARREIA", (fim) => somarDias(fim, PARAMETROS.diasAposDiarreia));
+  episodio(respostas.infeccaoTratada, "INFECCAO_BACTERIANA", (fim) => somarDias(fim, PARAMETROS.diasAposTratamentoInfeccao));
+  episodio(respostas.sifilis, "SIFILIS", (fim) => somarMeses(fim, PARAMETROS.mesesAposTratamentoSifilis));
+  if (respostas.epilepsiaRecente) temporario("EPILEPSIA");
+  if (respostas.dengue.tipo === "dengue") temporario("DENGUE", somarDias(respostas.dengue.cura, PARAMETROS.diasAposDengue));
+  if (respostas.dengue.tipo === "grave") {
+    temporario("DENGUE_GRAVE", somarMeses(respostas.dengue.cura, PARAMETROS.mesesAposDengueGrave));
   }
   if (respostas.dataTatuagem) {
     temporario("TATUAGEM", somarMeses(respostas.dataTatuagem, PARAMETROS.mesesAposTatuagem));
@@ -63,6 +81,9 @@ export function verificarAptidao(respostas: RespostasTriagem, agora: Date = new 
 
   // Definitivos
   if (respostas.hepatiteApos11Anos) definitivo("HEPATITE_APOS_11_ANOS");
+  if (respostas.infeccoesDefinitivas) definitivo("INFECCOES_DEFINITIVAS");
+  if (respostas.doencaGrave) definitivo("DOENCA_GRAVE");
+  if (respostas.cancer) definitivo("CANCER");
 
   orientacoes.push("ALIMENTACAO");
 

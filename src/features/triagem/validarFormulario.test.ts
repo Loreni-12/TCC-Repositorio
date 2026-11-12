@@ -9,11 +9,23 @@ const preenchido: FormularioTriagem = {
   sexo: "masculino",
   peso: "72,5",
   jaDoou: "nao",
-  dormiu6Horas: "sim",
+  documentoComFoto: "sim",
+  sentindoBem: "sim",
+  alimentado: "sim",
+  horasSono: "7",
+  alcool12Horas: "nao",
   gripe: "nao",
-  tatuagem12Meses: "nao",
-  malaria12Meses: "nao",
+  diarreia: "nao",
+  infeccaoTratada: "nao",
   hepatiteApos11Anos: "nao",
+  infeccoesDefinitivas: "nao",
+  sifilis: "nao",
+  malaria12Meses: "nao",
+  doencaGrave: "nao",
+  epilepsia: "nao",
+  cancer: "nao",
+  dengue: "nao",
+  tatuagem12Meses: "nao",
 };
 
 describe("validarFormulario", () => {
@@ -22,7 +34,11 @@ describe("validarFormulario", () => {
     expect(r.valido).toBe(false);
     if (r.valido) return;
     expect(Object.keys(r.erros).sort()).toEqual(
-      ["dataNascimento", "dormiu6Horas", "gripe", "hepatiteApos11Anos", "jaDoou", "malaria12Meses", "peso", "sexo", "tatuagem12Meses"].sort(),
+      [
+        "alcool12Horas", "alimentado", "cancer", "dataNascimento", "dengue", "diarreia", "documentoComFoto", "doencaGrave",
+        "epilepsia", "gripe", "hepatiteApos11Anos", "horasSono", "infeccaoTratada", "infeccoesDefinitivas", "jaDoou",
+        "malaria12Meses", "peso", "sentindoBem", "sexo", "sifilis", "tatuagem12Meses",
+      ].sort(),
     );
   });
 
@@ -70,5 +86,24 @@ describe("validarFormulario", () => {
       const r = validarFormulario({ ...preenchido, peso }, HOJE);
       expect(r.valido).toBe(false);
     }
+  });
+
+  it("pergunta da febre só é exigida quando houve gripe ou resfriado", () => {
+    const r = validarFormulario({ ...preenchido, gripe: "atual" }, HOJE);
+    expect(!r.valido && r.erros.gripeFebre).toBe("Responda esta pergunta.");
+  });
+
+  it("câncer do tipo exceção (basocelular / in situ de colo) não conta como câncer", () => {
+    const r = validarFormulario({ ...preenchido, cancer: "excecao" }, HOJE);
+    expect(r.valido && r.respostas.cancer).toBe(false);
+  });
+
+  it("dengue exige data de cura dentro dos últimos 6 meses", () => {
+    const r = validarFormulario({ ...preenchido, dengue: "dengue", dataCuraDengue: "2025-01-01" }, HOJE);
+    expect(!r.valido && r.erros.dataCuraDengue).toBe("A data deve estar dentro dos últimos 6 meses.");
+  });
+
+  it("horas de sono precisam ser um número entre 0 e 24", () => {
+    for (const horasSono of ["abc", "-1", "30"]) expect(validarFormulario({ ...preenchido, horasSono }, HOJE).valido).toBe(false);
   });
 });
