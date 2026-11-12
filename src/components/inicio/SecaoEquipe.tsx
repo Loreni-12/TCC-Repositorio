@@ -1,5 +1,5 @@
 import { GraduationCap } from "lucide-react";
-import { EQUIPE, INSTITUICAO, PROFESSORES, iniciais } from "../../config/equipe";
+import { EQUIPE, INSTITUICAO, PROFESSORES } from "../../config/equipe";
 import { SECOES } from "../../config/rotas";
 import { Cartao } from "../ui/Cartao";
 import { Conteiner } from "../ui/Conteiner";
@@ -21,9 +21,14 @@ export function SecaoEquipe() {
           {EQUIPE.map((pessoa) => (
             <li key={pessoa.nome}>
               <Cartao tom="rosa" espacamento="p-4 sm:p-6" className="flex h-full flex-col items-center text-center">
-                <span aria-hidden className="grid size-16 place-items-center rounded-full bg-branco text-xl font-semibold text-vermelho sm:size-20 sm:text-2xl">
-                  {iniciais(pessoa.nome)}
-                </span>
+                <img
+                  src={pessoa.foto}
+                  alt={`Foto de ${pessoa.nome}`}
+                  width={320}
+                  height={320}
+                  loading="lazy"
+                  className="size-24 rounded-full border-4 border-branco object-cover sm:size-32"
+                />
                 <p className="mt-4 text-sm font-semibold sm:text-base">{pessoa.nome}</p>
                 <p className="mt-2 rounded-full bg-branco px-3 py-1 text-xs font-semibold text-vermelho">{pessoa.funcao}</p>
               </Cartao>

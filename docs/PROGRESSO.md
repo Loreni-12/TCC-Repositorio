@@ -14,8 +14,7 @@
 - [x] Regras do Firestore publicadas e site no ar em https://doe-mais-vida.web.app (2026-10-12).
 - [ ] Decidir se `/perfil` continua como página ou vira parte do pop-up.
 - [x] GitHub: código em https://github.com/Loreni-12/TCC-Reposit-rio (ramo `main`).
-- [ ] **Ramo local `alteracoes-novembro`**: logo menor no círculo + 14 perguntas novas na pré-triagem. **Não enviado ao GitHub nem publicado**, aguardando aprovação.
-- [ ] Fotos da equipe: aguardando os arquivos (Ana, Eduardo, Milena e Thaís).
+- [ ] **Ramo local `alteracoes-novembro`**: logo menor no círculo, 14 perguntas novas na pré-triagem e fotos da equipe. **Não enviado ao GitHub nem publicado**, aguardando aprovação.
 - [ ] Zika e chikungunya: sem fonte oficial encontrada; equipe indicar a fonte se quiser incluir.
 - [ ] Máscaras de entrada (telefone) e toast de feedback: citados na lista do professor e ainda não implementados.
 - [ ] Projeto antigo `doemaisvidadb` não é mais usado — decidir se mantém ou exclui (pelo console; nada foi alterado nele).
@@ -28,7 +27,9 @@
 - Sono passou a ser perguntado em horas (mínimo 6, conforme a FAQ).
 - Divergências entre a lista da equipe e a lei: a lei prevaleceu (dengue 4 semanas, sífilis temporária, epilepsia temporária). Zika e chikungunya ficaram de fora por falta de fonte.
 
-**Verificação:** lint ✔ · typecheck ✔ · build ✔ · test 65/65 ✔ · conferência visual da página inicial e da pré-triagem no build local.
+- Fotos da equipe (Ana, Eduardo, Milena, Thaís) recortadas em 320 × 320 px em `src/assets/equipe/` e exibidas na seção "Sobre a equipe" no lugar das iniciais.
+
+**Verificação:** lint ✔ · typecheck ✔ · build ✔ · test 65/65 ✔ · conferência visual da página inicial, da pré-triagem e da equipe (computador e celular) no build local.
 
 ## 2026-10-12 — Site no ar, rodapé e PDF
 
