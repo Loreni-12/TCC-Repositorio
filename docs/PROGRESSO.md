@@ -13,7 +13,7 @@
 - [ ] Testar num celular de verdade (o teste automatizado já emula 390 px e mostrou que nada estoura a largura).
 - [x] Regras do Firestore publicadas e site no ar em https://doe-mais-vida.web.app (2026-10-12).
 - [ ] Decidir se `/perfil` continua como página ou vira parte do pop-up.
-- [x] GitHub: código em https://github.com/Loreni-12/TCC-Reposit-rio (ramo `main`).
+- [x] GitHub: código em https://github.com/Loreni-12/TCC-Repositorio (ramo `main`).
 - [x] Alterações de novembro (logo, 14 perguntas novas, fotos da equipe) publicadas no site e no GitHub em 2026-11-12.
 - [ ] Zika e chikungunya: sem fonte oficial encontrada; equipe indicar a fonte se quiser incluir.
 - [ ] Máscaras de entrada (telefone) e toast de feedback: citados na lista do professor e ainda não implementados.
