@@ -26,7 +26,7 @@ Informar a população sobre a doação de sangue, desfazer mitos, incentivar no
 |---|---|
 | Informações: requisitos, intervalos e impedimentos, com fonte | **pronta** (tabela de compatibilidade ABO/Rh planejada) |
 | Pré-triagem: questionário (apto / inapto temporário / inapto), orientação e data para refazer | **pronta** (salvar no perfil depende do login) |
-| Sobre a equipe (dados do TAP da monografia) | **pronta** |
+| Sobre a equipe (dados do TAP da monografia, com fotos) | **pronta** |
 | Entrar / Cadastro em pop-up (e-mail/senha e Google) + perfil no Firestore | **pronto** (regras ainda não publicadas) |
 | Perfil: histórico das triagens e data sugerida para reavaliar | planejada |
 | Agendamento: encaminhamento para os canais oficiais do HEMOSC | **pronto** (planejamento pessoal na conta: planejado) |
@@ -85,7 +85,7 @@ O ESLint impede importar o Firebase fora de `src/services/` e `src/lib/`.
 │   ├── services/       # única camada que fala com o Firebase: auth.ts, usuarios.ts
 │   ├── config/         # rotas, links oficiais, fontes, criterios da triagem
 │   ├── types/          # tipos compartilhados (triagem)
-│   ├── assets/         # logo
+│   ├── assets/         # logo e equipe/ (fotos das integrantes, 320 × 320 px)
 │   ├── lib/firebase.ts # inicialização do Firebase + emuladores
 │   ├── styles/         # index.css com tokens de design (Tailwind)
 │   ├── main.tsx        # ponto de entrada
@@ -121,7 +121,9 @@ Rotas, seções (âncoras) e itens do menu ficam em `src/config/rotas.ts`. Todas
 1. O formulário (`FormularioTriagemCampos`) coleta as respostas, que **ficam só no navegador**.
 2. `validarFormulario` confere os campos e converte para `RespostasTriagem`.
 3. `verificarAptidao` aplica os critérios de `src/config/criterios.ts` e devolve resultado, motivos, orientações e a data para refazer.
-4. Cada critério guarda o trecho literal da fonte oficial (FAQ do Ministério da Saúde) e a marcação `revisadoPelaEquipe`.
+4. Cada critério guarda o trecho literal da fonte oficial (FAQ do Ministério da Saúde ou Portaria GM/MS nº 158/2016, com o artigo) e a marcação `revisadoPelaEquipe`.
+
+O questionário tem 4 seções: **identificação, idade e peso** (inclui documento com foto); **condições no dia da doação** (bem-estar, alimentação, horas de sono, álcool); **doenças e sintomas recentes** (gripe com ou sem febre, diarreia, infecção tratada, hepatite, HIV/HTLV/hepatites B e C/Chagas, sífilis, malária, doenças crônicas graves, epilepsia, câncer, dengue); **últimos 12 meses** (tatuagem, gravidez, amamentação). Quando a FAQ e a Portaria divergem, vale o prazo mais longo. Zika e chikungunya não entraram por falta de fonte oficial.
 
 ## Firebase
 
@@ -234,18 +236,24 @@ O site fica em `https://doe-mais-vida.web.app`. O deploy **só é feito após co
 
 ## Fontes oficiais
 
-Os critérios da triagem virão exclusivamente de:
+Os critérios da pré-triagem vêm exclusivamente de fontes oficiais. As que estão em uso hoje:
 
-- Ministério da Saúde: Portaria de Consolidação nº 5/2017
+- Ministério da Saúde: Perguntas frequentes sobre doação de sangue (atualizada em 14/06/2023)
+- Ministério da Saúde: Portaria GM/MS nº 158/2016, consolidada na Portaria de Consolidação nº 5/2017, Anexo IV
+
+Outras referências do projeto:
+
 - ANVISA: RDC nº 34/2014
 - HEMOSC: Centro de Hematologia e Hemoterapia de Santa Catarina
 - OMS: Organização Mundial da Saúde
 
-Links e contatos oficiais serão centralizados em `src/config/` e marcados como "a verificar" até a equipe confirmar.
+Links e fontes ficam centralizados em `src/config/links.ts` e `src/config/fontes.ts`, com a data de consulta.
 
 ## Equipe
 
 CEDUP Hermann Hering, Blumenau/SC, turma 302 (2026).
+
+As fotos aparecem na seção "Sobre a equipe" do site (arquivos em `src/assets/equipe/`).
 
 | Integrante | Função |
 |---|---|
@@ -277,3 +285,4 @@ Requisitos e modelagem: veja [docs/monografia/](docs/monografia/).
 | 2026-10-12 | Identidade visual (paleta, Poppins, ícones, logo), layout global e pré-triagem com 37 testes. |
 | 2026-10-12 | Página única com seções fluidas, equipe (TAP), cadastro em pop-up (Firebase Auth + perfil), regras de `users/{uid}` com testes, Firebase carregado sob demanda (Firestore Lite). |
 | 2026-10-12 | Primeiro deploy (https://doe-mais-vida.web.app), rodapé com direitos autorais, PDF de conceitos em `docs/apresentacao/`. |
+| 2026-11-12 | Logo menor no círculo da abertura; pré-triagem com 4 seções e 14 critérios da Portaria GM/MS nº 158/2016 (65 testes); fotos da equipe. |

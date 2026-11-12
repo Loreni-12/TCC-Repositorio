@@ -42,7 +42,8 @@ Fluxo de dependência obrigatório: **pages → components → features → serv
 | `src/features/` | lógica por domínio: `triagem/` (datas, validação, verificarAptidao) e `auth/` (ProvedorConta, useConta, validação, erros) |
 | `src/services/` | única camada que fala com Firebase: `auth.ts` (Quadro 1), `usuarios.ts` |
 | `src/lib/firebase.ts` | inicialização do Firebase + emuladores em dev |
-| `src/config/` | conteúdo configurável: `rotas` (+ seções), `links`, `fontes`, `criterios`, `informacoes`, `equipe` |
+| `src/config/` | conteúdo configurável: `rotas` (+ seções), `links`, `fontes`, `criterios`, `informacoes`, `equipe` (com fotos) |
+| `src/assets/` | logo e `equipe/` (fotos das integrantes) |
 | `src/types/` | tipos compartilhados (`triagem.ts`, `usuario.ts`) |
 | `src/styles/` | tokens de design e CSS global |
 | `tests/` | testes das Security Rules (rodam no emulador) |
@@ -71,7 +72,7 @@ Não criar pastas/arquivos vazios só para "parecer organizado".
     dataCriacao: timestamp     # NÃO marca horário no hemocentro; UI sempre leva ao canal oficial
   ```
   Questionário/critérios/orientações ficam em `src/config/criterios.ts` (C3), não no Firestore.
-- **Security Rules (`firestore.rules`):** `users/{uid}` liberado só para o dono, com validação de campos. Subcoleções e o resto continuam negados. **Versão local ainda não publicada** (`firebase deploy --only firestore:rules`, só com confirmação). Proibido `if true` e regras com data de expiração.
+- **Security Rules (`firestore.rules`):** `users/{uid}` liberado só para o dono, com validação de campos. Subcoleções e o resto continuam negados. Publicadas em 2026-10-12; qualquer mudança só vai ao ar com confirmação (`firebase deploy --only firestore:rules`). Proibido `if true` e regras com data de expiração.
 - **SDK:** o app usa `firebase/firestore/lite` (sem tempo real, bem menor) e carrega os serviços sob demanda (`ProvedorConta`). Os testes de regras usam o SDK completo.
 - **Hosting:** serve `dist/`, rewrite de tudo para `/index.html` (SPA). URL: `https://doe-mais-vida.web.app`.
 - **Emuladores:** `npm run emulators` (Auth 9099, Firestore 8080, Hosting 5000, UI 4000). Com `VITE_USE_EMULATORS=true` no `.env.local`, `npm run dev` usa os emuladores. Testes de regras usam o projeto `demo-doe-mais-vida` (nunca toca recursos reais).
@@ -80,6 +81,9 @@ Não criar pastas/arquivos vazios só para "parecer organizado".
 
 - Triagem **não oficial**, com aviso visível de que não substitui a triagem do hemocentro.
 - Critérios clínicos **somente de fontes oficiais** (MS — Portaria de Consolidação nº 5/2017; ANVISA — RDC nº 34/2014; HEMOSC), em um único arquivo versionado em `src/config/`, com fonte e data de cada critério. **Nunca inventar critérios.**
+  - Em uso (`src/config/fontes.ts`): FAQ do Ministério da Saúde e **Portaria GM/MS nº 158/2016** (consolidada na PRC nº 5/2017, Anexo IV; texto em bvsms.saude.gov.br). Cada critério cita o artigo ou a tabela da Portaria em `trechoFonte`.
+  - FAQ e Portaria divergentes: usar o prazo **mais longo**. Pedido da equipe sem fonte oficial (ex.: zika, chikungunya) **não entra**: avisar e pedir a fonte.
+  - Mudou critério ou parâmetro: incrementar `VERSAO_CRITERIOS` (atual: `2026-11-12.1`) e atualizar os testes de `verificarAptidao`.
 - **Nunca salvar respostas brutas** da triagem (LGPD — dado de saúde). Salvar só resultado, códigos de motivo, datas e versão dos critérios.
 - Links, telefones e endereços oficiais centralizados em `src/config/`, marcados "a verificar" até a equipe confirmar. **Nunca inventar URLs.**
 
@@ -154,7 +158,8 @@ Tokens ficam em `src/styles/index.css` (`@theme` do Tailwind v4): mude o visual 
 - **Página única:** seções alternam `rosa-claro` e `branco`, emendadas pelo divisor `Onda`. No máximo um bloco vermelho de destaque por seção. Largura `max-w-7xl` (`Conteiner`), evitando colunas estreitas no meio da tela.
 - **Componentes base:** `Conteiner`, `Onda`, `Cartao` (tom/espacamento), `Botao`/`LinkBotao`, `Aviso`, `LinkExterno`, `Dialogo`, `CampoTexto`, `CampoOpcoes`, `TituloPagina`, `CabecalhoSecao`, `Navbar`, `Rodape`.
 - **Mobile:** mobile-first. Na navbar, o menu vira um botão hambúrguer abaixo de 1024px (`lg`). Em listas de cartões pequenos, usar 2 colunas já no celular.
-- **Logo:** `src/assets/logo.png` (recortado do original). Favicon em `public/favicon.png`.
+- **Logo:** `src/assets/logo.png` (recortado do original), exibido a 72% do círculo da abertura para os cantos não saírem do círculo. Favicon em `public/favicon.png`.
+- **Fotos da equipe:** `src/assets/equipe/*.jpg`, recortes quadrados de 320 × 320 px centrados no rosto, ligados em `src/config/equipe.ts`.
 
 ## 13. Comandos
 
